@@ -7,6 +7,9 @@ app.use(cors());
 app.options('*', cors());
 const stripe = require('stripe')('sk_test_51INbAZBqwn3VfOGXXbgUT7qx3NfDby66prbM4t3fzHCmWZxPvl4vrzHeBl00rbiCLs6g2TdD5CFJOdqyko6ypUsN00ptbpaZGC')
 
+// Use body-parser to retrieve the raw body as a buffer
+const bodyParser = require('body-parser');
+
 app.post('/create-checkout-session', async (req, res) => {
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
@@ -17,9 +20,9 @@ app.post('/create-checkout-session', async (req, res) => {
           product_data: {
             name: 'T-shirt',
           },
-          unit_amount: 2000,
+          unit_amount: 100,
         },
-        quantity: 1,
+        quantity: 2,
       },
     ],
     mode: 'payment',
@@ -42,17 +45,19 @@ app.post('/webhook', bodyParser.raw({ type: 'application/json' }), (request, res
     response.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  console.log("event", event);
-
+  
   // Handle the event
+  const paymentObject = event.data.object;
   switch (event.type) {
     case 'payment_intent.succeeded':
-      const paymentIntent = event.data.object;
-      console.log('PaymentIntent was successful!');
+      console.log('PaymentIntent was successful!', paymentObject);
+      // #IMPORTANT: Update database or do something here
       break;
     case 'payment_method.attached':
-      const paymentMethod = event.data.object;
       console.log('PaymentMethod was attached to a Customer!');
+      break;
+    case 'payment_intent.canceled':
+      console.log('payment intent cancel!', paymentObject);
       break;
     // ... handle other event types
     default:
