@@ -9,6 +9,12 @@ const stripe = require('stripe')('sk_test_51INbAZBqwn3VfOGXXbgUT7qx3NfDby66prbM4
 
 // Use body-parser to retrieve the raw body as a buffer
 const bodyParser = require('body-parser');
+const path = require('path');
+
+
+app.get('/', async(req, res) => {
+  res.sendFile(path.join(__dirname + '/index.html'));
+});
 
 app.post('/create-checkout-session', async (req, res) => {
   const session = await stripe.checkout.sessions.create({
